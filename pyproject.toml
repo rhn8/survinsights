@@ -13,7 +13,20 @@ authors = [
   { name = "Lucas Ducrot", email = "lucas.ducrot@inria.fr" },
   { name = "Van Tuan Nguyen", email = "van-tuan.nguyen@inria.fr" },
 ]
-classifiers = [ ...unchanged, but delete the 3.9 line... ]
+classifiers = [
+  "Development Status :: 3 - Alpha",
+  "Intended Audience :: Developers",
+  "Intended Audience :: Science/Research",
+  "License :: OSI Approved :: MIT License",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
+  "Programming Language :: Python :: 3 :: Only",
+  "Topic :: Software Development",
+  "Topic :: Scientific/Engineering",
+]
 dependencies = [
   "lifelines",
   "matplotlib",
@@ -23,22 +36,22 @@ dependencies = [
   "scipy",
   "seaborn",
   "shap",
-  "torch",            # imported by _survlongishap.py
+  "torch",
 ]
 
 [project.optional-dependencies]
-sim    = ["stochastic>=0.6"]           # longi_simulation (caps numpy<2)
-coxsig = ["iisignature"]               
-ddh    = ["tensorflow>=2.15", "pyyaml"]
-all    = ["survinsights[sim,coxsig,ddh]"]
-
-[tool.hatch.build.targets.wheel]
-packages = ["src/survinsights"]
+sim = ["stochastic>=0.6"]
+coxsig = ["iisignature"]
+ddh = ["tensorflow>=2.15", "pyyaml"]
+all = ["survinsights[sim,coxsig,ddh]"]
 
 [project.urls]
 Documentation = "https://github.com/TeamHeKA/survinsights#README"
 Issues = "https://github.com/TeamHeKA/survinsights/issues"
 Source = "https://github.com/TeamHeKA/survinsights"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/survinsights"]
 
 [tool.ruff.lint.extend-per-file-ignores]
 "src/survinsights/explainer.py" = ["N801"]
