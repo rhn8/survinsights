@@ -3,7 +3,6 @@ import pandas as pd
 import seaborn as sns
 import matplotlib.pyplot as plt
 sns.set(style='whitegrid',font="STIXGeneral",context='talk',palette='colorblind')
-from examples.learner.dynamic_deephit_ext import construct_df, Dynamic_DeepHit_ext
 
 def weighted_median(values, weights):
     values = np.asarray(values)
@@ -115,6 +114,7 @@ def ddh_predict(explainer, longi_feat, pred_times, prediction_type="survival", s
     pred : `np.ndarray`, shape=(n_samples, n_times)
         The matrix contains the prediction
 	"""
+    from examples.learner.dynamic_deephit_ext import construct_df, Dynamic_DeepHit_ext
 	n_samples = longi_feat.shape[0]
 	cont_feat, bin_feat, time_scale, _ = explainer.model.ddh_info_sup
 	sampling_times = longi_feat[0, :, 0]
