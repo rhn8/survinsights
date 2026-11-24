@@ -37,7 +37,7 @@ dependencies = [
   "scipy",
   "seaborn",
   "shap",
-  "stochastic"
+  "stochastic>=0.6"
 ]
 
 [project.urls]
