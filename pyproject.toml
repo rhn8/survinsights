@@ -7,27 +7,13 @@ name = "survinsights"
 version = "0.0.3"
 description = "Interpretation of ML-based survival methods"
 readme = "README.md"
-requires-python = ">=3.9"
+requires-python = ">=3.10"
 license = "MIT"
 authors = [
-  { authors = "Lucas Ducrot", email = "lucas.ducrot@inria.fr"},
-  { authors = "Van Tuan Nguyen", email = "van-tuan.nguyen@inria.fr"},
+  { name = "Lucas Ducrot", email = "lucas.ducrot@inria.fr" },
+  { name = "Van Tuan Nguyen", email = "van-tuan.nguyen@inria.fr" },
 ]
-classifiers = [
-  "Development Status :: 3 - Alpha",
-  "Intended Audience :: Developers",
-  "Intended Audience :: Science/Research",
-  "License :: OSI Approved :: MIT License",
-  "Programming Language :: Python :: 3",
-  "Programming Language :: Python :: 3.9",
-  "Programming Language :: Python :: 3.10",
-  "Programming Language :: Python :: 3.11",
-  "Programming Language :: Python :: 3.12",
-  "Programming Language :: Python :: 3.13",
-  "Programming Language :: Python :: 3 :: Only",
-  "Topic :: Software Development",
-  "Topic :: Scientific/Engineering",
-]
+classifiers = [ ...unchanged, but delete the 3.9 line... ]
 dependencies = [
   "lifelines",
   "matplotlib",
@@ -37,8 +23,17 @@ dependencies = [
   "scipy",
   "seaborn",
   "shap",
-  "stochastic>=0.6"
+  "torch",            # imported by _survlongishap.py
 ]
+
+[project.optional-dependencies]
+sim    = ["stochastic>=0.6"]           # longi_simulation (caps numpy<2)
+coxsig = ["iisignature"]               
+ddh    = ["tensorflow>=2.15", "pyyaml"]
+all    = ["survinsights[sim,coxsig,ddh]"]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/survinsights"]
 
 [project.urls]
 Documentation = "https://github.com/TeamHeKA/survinsights#README"
