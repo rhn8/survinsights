@@ -3,27 +3,53 @@ import pandas as pd
 import torch
 from sklearn.preprocessing import OneHotEncoder
 import os
-os.environ['R_HOME'] = "/Library/Frameworks/R.framework/Resources"
+from pathlib import Path
 import matplotlib.pyplot as plt
 from matplotlib.lines import Line2D
 import seaborn as sns
 sns.set(style="whitegrid", font="STIXGeneral", context="talk", palette="colorblind")
 
-import rpy2.robjects as robjects
-from rpy2.robjects import pandas2ri
-from rpy2.robjects.conversion import localconverter
-from rpy2.robjects import default_converter
+_HERE = Path(__file__).resolve().parent
+_REPO_ROOT = _HERE.parents[2]
+_DEFAULT_CSV = _REPO_ROOT / "examples/learner/Dynamic_DeepHit/data/pbc2_cleaned.csv"
+_DEFAULT_FIG = _REPO_ROOT / "figures/PBC_data.pdf"
 
-def load():
-    # load PBC Seq
-    robjects.r.source(os.getcwd() + "/../examples/data/PBC/load_PBC_Seq.R")
-    static_feat_list = ['edema', 'age']
-    longi_feat_list = ['serBilir', 'albumin', 'alkaline', 'SGOT', 'prothrombin']
+
+def load(save_path=_DEFAULT_FIG):
+    """Load PBC-Seq from R (JMbayes::pbc2). Requires R, JMbayes and rpy2."""
+    mac_r_home = "/Library/Frameworks/R.framework/Resources"
+    if os.path.isdir(mac_r_home):
+        os.environ.setdefault("R_HOME", mac_r_home)
+    import rpy2.robjects as robjects
+    from rpy2.robjects import pandas2ri, default_converter
+    from rpy2.robjects.conversion import localconverter
+
+    robjects.r.source(str(_HERE / "load_PBC_Seq.R"))
     data_R = robjects.r["load"]()
-
     with localconverter(default_converter + pandas2ri.converter):
         df_org = robjects.conversion.rpy2py(data_R)
-    df_org = df_org[(df_org[longi_feat_list] > -1e-4).all(axis=1)]
+    return _build(df_org, save_path)
+
+
+def load_csv(csv_path=_DEFAULT_CSV, save_path=_DEFAULT_FIG):
+    """
+    Load PBC-Seq from the Dynamic-DeepHit copy of pbc2 (no R needed).
+
+    That file stores times in weeks and label in {0: alive, 1: dead, 2: transplanted};
+    convert to the R loader's convention (years, status2 = death indicator).
+    Edema is coded 0/1/2 with 0 = "No edema", the first one-hot column in both cases.
+    """
+    df_org = pd.read_csv(csv_path)
+    df_org["times"] = df_org["times"] / 52.0
+    df_org["tte"] = df_org["tte"] / 52.0
+    df_org["label"] = (df_org["label"] == 1).astype(float)
+    return _build(df_org, save_path)
+
+
+def _build(df_org, save_path=_DEFAULT_FIG):
+    static_feat_list = ['edema', 'age']
+    longi_feat_list = ['serBilir', 'albumin', 'alkaline', 'SGOT', 'prothrombin']
+    df_org = df_org[(df_org[longi_feat_list] > -1e-4).all(axis=1)].copy()
     print(df_org.columns)
 
     # TODO: CHECK CHECK
@@ -61,7 +87,7 @@ def load():
     for i in np.arange(n_samples):
         idx = idxs[i]
         df_times = pd.DataFrame(np.array((np.array([idx] * n_sampling_times), sampling_times)).T, columns=["id", "times"])
-        df_idx = pd.merge(df_times, df_[df_.id == idx], how="left", on=["id", "times"]).fillna(method='ffill')
+        df_idx = pd.merge(df_times, df_[df_.id == idx], how="left", on=["id", "times"]).ffill()
         X[i] = df_idx[["times"] + longi_markers].values
 
     paths = torch.from_numpy(X.copy())
@@ -73,7 +99,9 @@ def load():
     ddh_info_sup = (longi_markers, static_feat_list, time_scale, bin_df)
 
     truncated_paths = truncate_paths_at_events(paths, sampling_times, surv_labels)
-    visualize(paths, truncated_paths, surv_labels, longi_feat_list, save_path="../figures/PBC_data.pdf")
+    if save_path:
+        Path(save_path).parent.mkdir(parents=True, exist_ok=True)
+    visualize(paths, truncated_paths, surv_labels, longi_feat_list, save_path=save_path)
 
     return truncated_paths, surv_labels, longi_feat_list, static_feat, static_feat_list, ddh_info_sup
 
